@@ -1,4 +1,5 @@
-print ("hello world")
-print ("hello world")
-print ("hello world")
-print ("hello world")
+print("123")
+1
+2
+3
+4
