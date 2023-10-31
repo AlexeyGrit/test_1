@@ -9,7 +9,7 @@ def roll_dice(num_dice):
 
 def make_bet(previous_bet):
     """Получает ставку предыдущего игрока и возвращает новую ставку"""
-    new_bet = input("Сделайте свою ставку (число и номинал): ")
+    new_bet = input("Сделайте свою ставку (значение (от 1го до 6) и количество кубиков): ")
 
     # Проверить корректность ввода и вернуть новую ставку
     while True:
@@ -17,14 +17,14 @@ def make_bet(previous_bet):
             count, value = new_bet.split()
             count = int(count)
             value = int(value)
-            if count > num_dice_1:
+            if count > num_dice_1 and count > num_dice_2:  # Проверяем обе руки
                 raise ValueError
             if previous_bet is not None:
                 prev_count, prev_value = previous_bet.split()
                 prev_count = int(prev_count)
                 prev_value = int(prev_value)
                 if count <= prev_count and value <= prev_value:
-                    raise ValueError("Некорректная ставка. Попробуйте еще раз.")
+                    raise ValueError
             break
         except ValueError:
             print("Некорректный ввод! Попробуйте еще раз.")
@@ -43,6 +43,7 @@ def count_dice(dice, value):
 def play_round(num_dice_1, num_dice_2):
     """Играет один раунд игры"""
     # Бросаем кости
+    global new_bet
     dice_1 = roll_dice(num_dice_1)
     dice_2 = roll_dice(num_dice_2)
     print("Выпавшие значения костей первого игрока:", dice_1)
@@ -80,7 +81,7 @@ def play_round(num_dice_1, num_dice_2):
         if new_count <= previous_count and new_value <= previous_value:
             print("Ставка должна быть выше предыдущей!")
             return
-        if new_count > num_dice_1 or new_count > num_dice_2:  # Изменено на num_dice_1 и num_dice_2
+        if new_count > num_dice_1 or new_count > num_dice_2:
             print("Ставка превышает количество кубиков!")
             return
         # Сравнить новую ставку с предыдущей и определить победителя и проигравшего
@@ -91,20 +92,39 @@ def play_round(num_dice_1, num_dice_2):
             print("Второй игрок проиграл!")
             num_dice_2 -= 1
 
-    # Вывести результаты раунда, количество кубиков каждого игрока
-    print("Количество кубиков первого игрока:", num_dice_1)
-    print("Количество кубиков второго игрока:", num_dice_2)
+    # Повысить ставку или завершить игру, если достигнут предел
+    if num_dice_1 > 0 and num_dice_2 > 0:
+        if action == '2':
+            action = input("Выберите действие (1 - 'не верю', 2 - сделать ставку): ")
+            if action == '1':
+                # Игрок не верит ставке после повышения
+                previous_value = int(new_bet.split()[1])
+                count_1 = count_dice(dice_1, previous_value)
+                count_2 = count_dice(dice_2, previous_value)
+                if count_1 + count_2 < int(new_bet.split()[0]):
+                    # Первый игрок проиграл
+                    print("Первый игрок проиграл!")
+                    # Обновить количество кубиков у первого игрока
+                    num_dice_1 -= 1
+                else:
+                    # Второй игрок проиграл
+                    print("Второй игрок проиграл!")
+                    # Обновить количество кубиков у второго игрока
+                    num_dice_2 -= 1
+            elif action == '2':
+                # Игрок повышает ставку
+                new_bet = make_bet(new_bet)
 
-    # Повторить игру до тех пор, пока у одного из игроков не закончатся кубики
-    if num_dice_1 > 0 and num_dice_2 > 0:  # Изменено на два условия
-        play_round(num_dice_1, num_dice_2)
+        if num_dice_1 > 0 and num_dice_2 > 0:
+            play_round(num_dice_1, num_dice_2)
 
     # Объявить победителя игры
-    if num_dice_1 == 0:
+    if num_dice_1 == 0 and num_dice_2 == 0:
+        print("Игра окончена. Ничья!")
+    elif num_dice_1 == 0:
         print("Игра окончена. Победил первый игрок!")
     else:
         print("Игра окончена. Победил второй игрок!")
-
 
 num_dice_1 = 5
 num_dice_2 = 5
